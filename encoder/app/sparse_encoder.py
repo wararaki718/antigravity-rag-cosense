@@ -26,9 +26,12 @@ def encode_text(text: str) -> dict[str, float]:
         A dictionary mapping token strings to their weights.
     """
     encoder = get_encoder()
-    result = encoder.embed(text)
-    sparse_dict: dict[str, float] = {}
-    for token, weight in result:
-        if weight > 0:
-            sparse_dict[token] = float(weight)
-    return sparse_dict
+    # encode() expects a list of strings and returns a matrix
+    embeddings = encoder.encode([text])
+    # get_token_values() converts the matrix/array to a list of dicts or a single dict
+    result = encoder.get_token_values(embeddings)
+    
+    # If a single string was passed, it returns a single dict
+    if isinstance(result, list):
+        return result[0]
+    return result

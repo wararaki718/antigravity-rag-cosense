@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     ollama_model: str = "gemma3:1b"
 
     # Encoder API
-    encoder_url: str = "http://localhost:8001"
+    encoder_url: str = "http://localhost:8000"
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
