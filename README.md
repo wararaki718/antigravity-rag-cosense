@@ -52,57 +52,51 @@ docker-compose.yml # Elasticsearch + Ollama
 
 ## Setup
 
-### 1. 環境変数
+### 1. 初期セットアップ
+
+`Makefile` を使用して、環境変数の作成、ビルド、起動をまとめて行います。
 
 ```bash
-cp .env.example .env
+make setup
 ```
 
-### 2. Docker 起動
-
+※ 個別に実行する場合:
 ```bash
+cp -n .env.example .env
+docker compose build
 docker compose up -d
-docker exec rag-ollama ollama pull gemma3:1b
 ```
 
-### 3. Python 環境 (各プロジェクト)
+### 2. LLM モデルのダウンロード
+
+初回のみ実行が必要です。
 
 ```bash
-# Encoder
-cd encoder && python -m venv .venv && source .venv/bin/activate && pip install -e .
-
-# Backend
-cd backend && python -m venv .venv && source .venv/bin/activate && pip install -e .
-
-# Batch
-cd batch && python -m venv .venv && source .venv/bin/activate && pip install -e .
-```
-
-### 4. Frontend
-
-```bash
-cd frontend && npm install
+make pull-model
 ```
 
 ## Usage
 
-### 開発サーバー起動
+### サービスの確認
+
+- **Frontend**: [http://localhost:5173](http://localhost:5173)
+- **Backend API**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **Encoder API**: [http://localhost:8001/docs](http://localhost:8001/docs)
+
+### データ取り込み (Batch)
+
+Cosense からデータを取得し、Elasticsearch にインデックスします。
 
 ```bash
-# 1. Encoder (port 8001)
-cd encoder && source .venv/bin/activate && uvicorn app.main:app --reload --port 8001
-
-# 2. Backend (port 8000)
-cd backend && source .venv/bin/activate && uvicorn app.main:app --reload --port 8000
-
-# 3. Frontend (port 5173)
-cd frontend && npm run dev
+make ingest
 ```
 
-### データ取り込み
+### 便利コマンド
 
 ```bash
-cd batch && source .venv/bin/activate && python -m app.ingest
+make logs    # ログの確認
+make ps      # コンテナの状態確認
+make down    # サービスの停止
 ```
 
 ## License

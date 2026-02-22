@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:8001";
+const API_BASE_URL = "http://localhost:8000";
 
 export interface SourceDocument {
     title: string;

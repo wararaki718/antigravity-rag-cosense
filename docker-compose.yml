@@ -24,6 +24,61 @@ services:
     volumes:
       - ollama_data:/root/.ollama
 
+  encoder:
+    build: ./encoder
+    container_name: rag-encoder
+    ports:
+      - "8001:8000"
+    environment:
+      - SPLADE_MODEL=${SPLADE_MODEL:-hotchpotch/japanese-splade-v2}
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: rag-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - ELASTICSEARCH_INDEX=${ELASTICSEARCH_INDEX:-cosense_pages}
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-gemma3:1b}
+      - ENCODER_URL=http://encoder:8000
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+      encoder:
+        condition: service_started
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: rag-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  batch:
+    build: ./batch
+    container_name: rag-batch
+    environment:
+      - COSENSE_PROJECT=${COSENSE_PROJECT}
+      - COSENSE_SID=${COSENSE_SID}
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - ELASTICSEARCH_INDEX=${ELASTICSEARCH_INDEX:-cosense_pages}
+      - ENCODER_URL=http://encoder:8000
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      encoder:
+        condition: service_started
+    profiles:
+      - tools
+
 volumes:
   es_data:
   ollama_data:
